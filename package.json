@@ -1,0 +1,24 @@
+{
+    "name": "httl",
+    "version": "0.0.1",
+    "description": "JSX-like ttl for hyperapp",
+    "main": "src/index.js",
+    "module": "src/index.js",
+    "scripts": {
+        "test": "ava"
+    },
+    "author": "Zacharias Enochsson",
+    "license": "MIT",
+    "devDependencies": {
+        "ava": "^3.8.2",
+        "esm": "^3.2.25"
+    },
+    "peerDependencies": {
+        "hyperapp": "^2.0.4"
+    },
+    "ava": {
+        "require": [
+            "esm"
+        ]
+    }
+}
