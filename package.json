@@ -13,6 +13,7 @@
         "ava": "^3.8.2",
         "esm": "^3.2.25",
         "hyperapp": "2.0.4",
+        "rollup": "^2.10.2",
         "terser": "^4.6.13"
     },
     "peerDependencies": {

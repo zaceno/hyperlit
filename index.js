@@ -1,141 +1,138 @@
 import { h } from 'hyperapp'
 
-const DEBUG = false
-
-const FAILURE = 0
-const INITIAL = 1
-const TAG = 2
-const TAGNAME = 3
+const NEXT = 1
+const TEXT = 2
+const TAG = 3
 const CLOSINGTAG = 4
-const PROPS = 5
-const CHILDREN = 6
-const ENDTAG = 7
+const TAGNAME = 5
+const PROPS = 6
+const SELFCLOSING = 7
 const PROPNAME = 8
 const PROPVAL = 9
 const PROPVALSTR = 10
-const PROPEND = 11
-const CHILDSTR = 12
-const MAYBECHILD = 13
+
+const ws = c => c === ' ' || c === '\t' || c === '\n'
 
 const parse = (strs, vals, jstart, istart) => {
     let ch,
         buffer = '',
         tagname,
         propname,
-        props = {},
-        children = [],
-        mode = INITIAL
+        props,
+        list = [],
+        mode = NEXT
 
+    const recurse = () => {
+        let r = parse(strs, vals, j, i + 1)
+        list.push(h(tagname, props, r[0]))
+        j = r[1]
+        i = r[2]
+        mode = NEXT
+    }
+
+    const gotTagName = () => {
+        tagname = buffer
+        props = {}
+    }
+    const gotText = () => {
+        list.push(buffer.trim())
+    }
     for (var j = jstart; j < strs.length; j++) {
         if (mode === PROPVAL) {
             props[propname] = vals[j - 1]
-            mode = PROPEND
+            mode = PROPS
         }
         for (var i = istart; i < strs[j].length; i++) {
             ch = strs[j][i]
-            if (mode == FAILURE) break
-            if (mode == INITIAL) {
-                if (ch == '<') {
+            if (mode === NEXT) {
+                if (ch === '<') {
                     mode = TAG
-                    buffer = ''
+                } else if (!ws(ch)) {
+                    buffer = ch
+                    mode = TEXT
                 }
-            } else if (mode == TAG) {
-                if (ch == '/') {
+            } else if (mode === TEXT) {
+                if (ch === '<') {
+                    gotText()
+                    mode = TAG
+                } else {
+                    buffer += ch
+                }
+            } else if (mode === TAG) {
+                if (ch === '/') {
                     mode = CLOSINGTAG
                 } else {
                     mode = TAGNAME
-                    buffer += ch
-                }
-            } else if (mode == TAGNAME) {
-                if (ch == ' ') {
-                    mode = PROPS
-                    tagname = buffer
-                    buffer = ''
-                } else if (ch == '>') {
-                    mode = CHILDREN
-                    tagname = buffer
-                    buffer = ''
-                } else if (ch == '/') {
-                    mode = ENDTAG
-                    tagname = buffer
-                    buffer = ''
-                } else {
-                    buffer += ch
-                }
-            } else if (mode == PROPS) {
-                if (ch == '/') {
-                    mode = ENDTAG
-                } else if (ch == '>') {
-                    mode = CHILDREN
-                } else if (ch !== ' ') {
-                    mode = PROPNAME
                     buffer = ch
                 }
-            } else if (mode == PROPNAME) {
-                if (ch == '=') {
-                    mode = PROPVAL
-                    propname = buffer
+            } else if (mode === CLOSINGTAG) {
+                if (ch === '>') {
+                    return [list, j, i]
+                }
+            } else if (mode === TAGNAME) {
+                if (ws(ch)) {
+                    gotTagName()
+                    mode = PROPS
+                } else if (ch === '/') {
+                    gotTagName()
+                    mode = SELFCLOSING
+                } else if (ch === '>') {
+                    gotTagName()
+                    recurse()
                 } else {
                     buffer += ch
                 }
-            } else if (mode == PROPVAL) {
-                if (ch == '"') {
+            } else if (mode === SELFCLOSING) {
+                if (ch === '>') {
+                    list.push(h(tagname, props))
+                    mode = NEXT
+                }
+            } else if (mode === PROPS) {
+                if (ch === '/') {
+                    mode = SELFCLOSING
+                } else if (ch === '>') {
+                    recurse()
+                } else if (!ws(ch)) {
+                    buffer = ch
+                    mode = PROPNAME
+                }
+            } else if (mode === PROPNAME) {
+                if (ch === '=') {
+                    propname = buffer
+                    mode = PROPVAL
+                } else {
+                    buffer += ch
+                }
+            } else if (mode === PROPVAL) {
+                if (ch === '"') {
                     mode = PROPVALSTR
                     buffer = ''
-                } else {
-                    mode = FAILURE
                 }
-            } else if (mode == PROPVALSTR) {
-                if (ch == '"') {
+            } else if (mode === PROPVALSTR) {
+                if (ch === '"') {
                     props[propname] = buffer
-                    mode = PROPEND
-                } else {
-                    buffer += ch
-                }
-            } else if (mode == PROPEND) {
-                if (ch == ' ') {
                     mode = PROPS
-                } else if (ch == '/') {
-                    mode = ENDTAG
-                } else if (ch == '>') {
-                    mode = CHILDREN
-                }
-            } else if (mode == ENDTAG) {
-                if (ch == '>') {
-                    return [h(tagname, props, children), j, i]
-                }
-            } else if (mode == CHILDREN) {
-                if (ch == '<') {
-                    mode = MAYBECHILD
-                } else {
-                    mode = CHILDSTR
-                    buffer = ch
-                }
-            } else if (mode == CHILDSTR) {
-                if (ch == '<') {
-                    children.push(buffer)
-                    mode = MAYBECHILD
-                    buffer = ''
                 } else {
                     buffer += ch
-                }
-            } else if (mode == MAYBECHILD) {
-                if (ch == '/') {
-                    mode = CLOSINGTAG
-                } else {
-                    let r = parse(strs, vals, j, i - 1)
-                    children.push(r[0])
-                    j = r[1]
-                    i = r[2]
-                    mode = CHILDREN
-                }
-            } else if (mode == CLOSINGTAG) {
-                if (ch == '>') {
-                    return [h(tagname, props, children), j, i]
                 }
             }
         }
+        istart = 0
+
+        if (mode === TEXT) {
+            gotText()
+            mode = NEXT
+        }
+        if (j < strs.length - 1 && mode === NEXT) {
+            list = [...list, ...(Array.isArray(vals[j]) ? vals[j] : [vals[j]])]
+        }
     }
+    if (mode === TEXT) {
+        gotText()
+    }
+
+    list = list.length === 1 ? list[0] : list
+    return [list, j, i]
 }
 
 export default (strs, ...vals) => parse(strs, vals, 0, 0)[0]
