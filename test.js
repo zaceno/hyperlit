@@ -104,3 +104,12 @@ test('deep complicated but static tree', t =>
             "Why then, oh why can't I",
         ])
     ))
+
+test('one variable prop', t =>
+    t.deepEqual(x`<foo bar=${42} />`, h('foo', { bar: 42 })))
+
+test('several variable prop', t =>
+    t.deepEqual(
+        x`<foo bar=${42} baz="foo" bat-dat=${false} />`,
+        h('foo', { bar: 42, baz: 'foo', 'bat-dat': false })
+    ))
