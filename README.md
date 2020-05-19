@@ -113,7 +113,8 @@ const node = html`<p class=${{ bigger: foo > 30 }}>...</p>`
 If you have a bunch of props you want to assign, you don't have to write them out individually, you can just:
 
 ```js
-html`<p ${{ class: 'bigger', id: 'a-1', key: 'a-1' }}>...</p>`
+const props = {class: 'bigger', id: 'a-1', key: 'a-1'}
+const node = html`<p ${props}>...</p>`
 ```
 
 (For compatibility with views you may have written using `htm`, the `...${props}` syntax is also supported)
