@@ -1,11 +1,14 @@
 {
-    "name": "httl",
+    "name": "hyperapp-ttl",
     "version": "0.0.1",
     "description": "JSX-like ttl for hyperapp",
-    "main": "src/index.js",
-    "module": "src/index.js",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
     "scripts": {
-        "test": "ava"
+        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp | terser -m -c --toplevel > dist/hyperapp-ttl.js",
+        "build:esm": "terser -m -c --toplevel src/index.js > dist/index.js",
+        "build": "npm run build:esm && npm run build:iife",
+        "test": "npm run build:esm && ava"
     },
     "author": "Zacharias Enochsson",
     "license": "MIT",
@@ -23,5 +26,9 @@
         "require": [
             "esm"
         ]
-    }
+    },
+    "bugs": {
+        "url": "https://github.com/zaceno/hyperapp-ttl/issues"
+    },
+    "homepage": "https://github.com/zaceno/hyperapp-ttl#readme"
 }

@@ -1,7 +1,6 @@
-import test from 'ava'
-import x from './index.js'
-const html = x
 import { h } from 'hyperapp'
+import test from 'ava'
+import x from '../dist/index.js'
 
 test('simple tag - space before close', t => t.deepEqual(x`<foo />`, h('foo')))
 test('simple tag - immediate close', t => t.deepEqual(x`<foo/>`, h('foo')))
