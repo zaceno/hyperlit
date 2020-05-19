@@ -1,11 +1,11 @@
 {
-    "name": "hyperapp-ttl",
+    "name": "hyperlit",
     "version": "0.0.1",
     "description": "JSX-like ttl for hyperapp",
     "main": "dist/index.js",
     "module": "dist/index.js",
     "scripts": {
-        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp | terser -m -c --toplevel > dist/hyperapp-ttl.js",
+        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp | terser -m -c --toplevel > dist/hyperlit.js",
         "build:esm": "terser -m -c --toplevel src/index.js > dist/index.js",
         "build": "npm run build:esm && npm run build:iife",
         "test": "npm run build:esm && ava"
@@ -28,7 +28,7 @@
         ]
     },
     "bugs": {
-        "url": "https://github.com/zaceno/hyperapp-ttl/issues"
+        "url": "https://github.com/zaceno/hyperlit/issues"
     },
-    "homepage": "https://github.com/zaceno/hyperapp-ttl#readme"
+    "homepage": "https://github.com/zaceno/hyperlit#readme"
 }
