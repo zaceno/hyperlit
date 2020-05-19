@@ -1,5 +1,6 @@
 import test from 'ava'
 import x from './index.js'
+const html = x
 import { h } from 'hyperapp'
 
 test('simple tag - space before close', t => t.deepEqual(x`<foo />`, h('foo')))
@@ -160,8 +161,132 @@ test('mixed static/dynamic, text, multi depth with props', t =>
         ])
     ))
 
-test.todo('An array of content')
-test.todo('conditional rendering - skip empty/nullish ')
-test.todo('whitespace')
-test.todo('prop-spread?')
-test.todo('components?')
+test('An array of content', t =>
+    t.deepEqual(
+        x`<foo>${['bar', 'baz', 'bop'].map(
+            n => x`<x prop=${n}>${n}</x>`
+        )}</foo>`,
+        h('foo', {}, [
+            h('x', { prop: 'bar' }, ['bar']),
+            h('x', { prop: 'baz' }, ['baz']),
+            h('x', { prop: 'bop' }, ['bop']),
+        ])
+    ))
+
+test('conditional rendering - skip empty/nullish ', t =>
+    t.deepEqual(
+        x`<foo>${[
+            false && 'false',
+            true && x`truetext`,
+            false && 'false',
+            true && x`<truenode/>`,
+            false && 'false',
+        ]}</foo>`,
+        h('foo', {}, ['truetext', h('truenode', {})])
+    ))
+
+test('prop-spread', t =>
+    t.deepEqual(
+        x`<foo ...${{ bar: 2, baz: 3 }} />`,
+        h('foo', { bar: 2, baz: 3 })
+    ))
+
+test('simple component', t => {
+    const component = () => x`<bar/>`
+    const result = x`<foo><${component} /></foo>`
+    const expected = h('foo', {}, [h('bar', {})])
+    t.deepEqual(expected, result)
+})
+
+test('component with props', t => {
+    const component = props => x`<bar myprop="1" extprop=${props.prop} />`
+    const result = x`<foo><${component} prop="aaa" /></foo>`
+    const expected = h('foo', {}, [h('bar', { myprop: '1', extprop: 'aaa' })])
+    t.deepEqual(expected, result)
+})
+
+test('component with just children - close with string', t => {
+    const component = (_, children) =>
+        x`<bar><ownchild />${children}<ownchild /></bar>`
+    const result = x`<foo><${component}><aaa /><bbb /><//>${x`hello`}</foo>`
+    const expected = h('foo', {}, [
+        h('bar', {}, [
+            h('ownchild', {}),
+            h('aaa', {}),
+            h('bbb', {}),
+            h('ownchild', {}),
+        ]),
+        'hello',
+    ])
+    t.deepEqual(expected, result)
+})
+test('component with just children - close with compoenent', t => {
+    const component = (_, children) =>
+        x`<bar><ownchild />${children}<ownchild /></bar>`
+    const result = x`<foo><${component}><aaa /><bbb /></${component}>${x`hello`}</foo>`
+    const expected = h('foo', {}, [
+        h('bar', {}, [
+            h('ownchild', {}),
+            h('aaa', {}),
+            h('bbb', {}),
+            h('ownchild', {}),
+        ]),
+        'hello',
+    ])
+    t.deepEqual(expected, result)
+})
+
+test('deep components', t => {
+    const component = (props, children) => x`
+        <component ownprop="yes" extprop=${props.foo}>
+            <h1>${props.bar}</h1>
+            ${children}
+        </component>
+    `
+    const result = x`
+        <main>
+            <div>
+                <h1>outer title</h1>
+                <${component} foo="a" bar="b">
+                    <p>inner text</p>
+                    <${component} foo="c" bar="d" />
+                <//>
+            </div>
+            <${component} foo="e" bar="f">
+                <p>other text</p>
+            <//>
+        </main>
+    `
+    const expect = h('main', {}, [
+        h('div', {}, [
+            h('h1', {}, ['outer title']),
+            h('component', { ownprop: 'yes', extprop: 'a' }, [
+                h('h1', {}, ['b']),
+                h('p', {}, ['inner text']),
+                h('component', { ownprop: 'yes', extprop: 'c' }, [
+                    h('h1', {}, ['d']),
+                ]),
+            ]),
+        ]),
+        h('component', { ownprop: 'yes', extprop: 'e' }, [
+            h('h1', {}, ['f']),
+            h('p', {}, ['other text']),
+        ]),
+    ])
+    t.deepEqual(result, expect)
+})
+
+test('it should also work to have dynamic prop in quotes', t =>
+    t.deepEqual(
+        x`<foo bar="${42}" baz="42" bat=${false} />`,
+        h('foo', { bar: 42, baz: '42', bat: false })
+    ))
+
+test('spread without ellipsis', t =>
+    t.deepEqual(
+        x`<foo bar="aaa" ${{ bar: 'bbb', bat: 'zzz' }} bar=${'ccc'} />`,
+        h('foo', {
+            bar: 'ccc',
+            bat: 'zzz',
+        })
+    ))

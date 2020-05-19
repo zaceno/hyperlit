@@ -10,6 +10,7 @@ const SELFCLOSING = 7
 const PROPNAME = 8
 const PROPVAL = 9
 const PROPVALSTR = 10
+const SPREAD = 11
 
 const ws = c => c === ' ' || c === '\t' || c === '\n'
 
@@ -20,11 +21,14 @@ const parse = (strs, vals, jstart, istart) => {
         propname,
         props,
         list = [],
-        mode = NEXT
+        mode = NEXT,
+        func,
+        j,
+        i
 
     const recurse = () => {
         let r = parse(strs, vals, j, i + 1)
-        list.push(h(tagname, props, r[0]))
+        list.push(tagname ? h(tagname, props, r[0]) : func(props, r[0]))
         j = r[1]
         i = r[2]
         mode = NEXT
@@ -34,19 +38,22 @@ const parse = (strs, vals, jstart, istart) => {
         tagname = buffer
         props = {}
     }
+
     const gotText = () => {
         list.push(buffer.trim())
     }
-    for (var j = jstart; j < strs.length; j++) {
+
+    for (j = jstart; j < strs.length; j++) {
         if (mode === PROPVAL) {
             props[propname] = vals[j - 1]
             mode = PROPS
         }
-        for (var i = istart; i < strs[j].length; i++) {
+        for (i = istart; i < strs[j].length; i++) {
             ch = strs[j][i]
             if (mode === NEXT) {
                 if (ch === '<') {
                     mode = TAG
+                    tagname = ''
                 } else if (!ws(ch)) {
                     buffer = ch
                     mode = TEXT
@@ -84,11 +91,13 @@ const parse = (strs, vals, jstart, istart) => {
                 }
             } else if (mode === SELFCLOSING) {
                 if (ch === '>') {
-                    list.push(h(tagname, props))
+                    list.push(tagname ? h(tagname, props) : func(props, []))
                     mode = NEXT
                 }
             } else if (mode === PROPS) {
-                if (ch === '/') {
+                if (ch === '.') {
+                    mode = SPREAD
+                } else if (ch === '/') {
                     mode = SELFCLOSING
                 } else if (ch === '>') {
                     recurse()
@@ -118,10 +127,22 @@ const parse = (strs, vals, jstart, istart) => {
             }
         }
         istart = 0
-
-        if (mode === TEXT) {
+        if (mode === TAG) {
+            func = vals[j]
+            props = {}
+            mode = PROPS
+        } else if (mode === TEXT) {
             gotText()
             mode = NEXT
+        } else if (mode === SPREAD) {
+            props = { ...props, ...vals[j] }
+            mode = PROPS
+        } else if (mode === PROPS) {
+            props = { ...props, ...vals[j] }
+        } else if (mode === PROPVALSTR) {
+            props[propname] = vals[j]
+            mode = PROPS
+            istart = 1
         }
         if (j < strs.length - 1 && mode === NEXT) {
             list = [...list, ...(Array.isArray(vals[j]) ? vals[j] : [vals[j]])]
