@@ -2,6 +2,36 @@
 
 `hyperlit` lets you declare your [hyperapp](https://hyperapp.dev) views in a html-like fashion, similar to JSX. Unlike JSX you don't need a build-step and babel config to do it -- it happens run-time in your browser. It's quite small – ca 0.5kb.
 
+Here's Hyperapp's "Quickstart" example using hyperlit:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script type="module">
+            import { app } from 'https://unpkg.com/hyperapp'
+            import html from 'https://unpkg.com/hyperlit?module'
+
+            app({
+                init: 0,
+                view: state => html`
+                    <main>
+                        <h1>${state}</h1>
+                        <button onclick=${state => state - 1}>-</button>
+                        <button onclick=${state => state + 1}>+</button>
+                    </main>`,
+                node: document.getElementById('app')
+            })
+        </script>
+    </head>
+    <body>
+        <main id="app"></main>
+    </body>
+</html>
+```
+
+In the following instructions I will just focus on how hyperlit replaces Hyperapp's `h` function. For actually making working apps with this, familiarity with Hyperapp is assumed.
+
 ## Getting hyperlit into your project
 
 ### Using npm
