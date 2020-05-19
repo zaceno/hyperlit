@@ -9,7 +9,7 @@
 In projects where you do bundle your app up, install hyperlit using:
 
 ```sh
-npm -i hyperlit
+npm i hyperlit
 ```
 
 > Note that hyperapp is a peer-dependency which you'll also need to have installed.
@@ -154,7 +154,8 @@ const view = html`
 But hyperlit allows you to do it this way as well:
 
 ```js
-const view = html` <main>
+const view = html`
+<main>
     <${box} active=${false} title="My bio">
         <p>Lorem ipsum</p>
         <p>Dolor sit amet</p>
