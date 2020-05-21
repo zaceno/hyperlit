@@ -199,9 +199,21 @@ const view = html`
 
 ## Tooling
 
-Some people would prefer to compile their views into `h` calls at build-time – I get that. There is no such package yet but it is definitely on the roadmap.
+### Transform to plain function calls with Babel
 
-If you want intellisense and syntax highlighting, and you are using [VS Code](https://code.visualstudio.com), get the [lit-html](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) extension.
+This library is meant to let you write html-like views that can be rendered in the browser without any build step. Still, you might eventually perfer the parsing to be taken care of by your build-toolchain in order to get faster renders. Of course you should be able to do so! Simply add this plugin to your babel config:
+
+```
+"babel": {
+  "plugins": ["hyperlit"]
+}
+```
+
+With that, babel will make sure to transform all your hyperlit views into plain function calls, so the browser doesn't have to do any parsing.
+
+### Syntax highlighting
+
+If you use [VS Code](https://code.visualstudio.com), install the [lit-html](https://marketplace.visualstudio.com/items?itemName=bierner.lit-html) to get highlighting and autocompletion that works well with hyperlit.
 
 ## Credits
 
