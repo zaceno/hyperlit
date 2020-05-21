@@ -55,7 +55,7 @@ import html from 'hyperlit'
 If you're not bundling your page, and you are importing Hyperapp from `https://unpkg.com/hyperapp`, then use this import instead:
 
 ```js
-import html from 'https://unpkg.com/hyperlit'
+import html from 'https://unpkg.com/hyperlit?module'
 ```
 
 ### Old-school
