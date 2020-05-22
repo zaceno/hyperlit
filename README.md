@@ -201,7 +201,7 @@ const view = html`
 
 ### Transform to plain function calls with Babel
 
-This library is meant to let you write html-like views that can be rendered in the browser without any build step. Still, you might eventually perfer the parsing to be taken care of by your build-toolchain in order to get faster renders. Of course you should be able to do so! Simply add this plugin to your babel config:
+This library is meant to let you write html-like views that can be rendered in the browser without any build step. Still, you might eventually perfer the parsing to be taken care of by your build-toolchain in order to get faster renders. Of course you should be able to do so! Simply add `babel-plugin-hyperlit` to your babel config. In `package.json` for example, it looks like this:
 
 ```
 "babel": {
