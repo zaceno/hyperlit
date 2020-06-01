@@ -9,7 +9,7 @@
         "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp --external hyperapp | terser -m -c > dist/hyperlit.js",
         "build:esm": "terser -m -c --toplevel src/index.js > dist/index.js",
         "build": "npm run build:esm && npm run build:iife",
-        "test": "npm run build:esm && ava"
+        "test": "ava"
     },
     "author": "Zacharias Enochsson",
     "license": "MIT",

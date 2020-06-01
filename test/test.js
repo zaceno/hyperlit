@@ -1,6 +1,6 @@
 import { h } from 'hyperapp'
 import test from 'ava'
-import x from '../dist/index.js'
+import x from '../src/index.js'
 
 test('simple tag - space before close', t => t.deepEqual(x`<foo />`, h('foo')))
 test('simple tag - immediate close', t => t.deepEqual(x`<foo/>`, h('foo')))
@@ -12,7 +12,7 @@ test('tag with one prop - with close space', t =>
 
 test('tag with multple props - no close space', t => {
     t.deepEqual(
-        x`<foo bar="baz"   bop="zap"/>`,
+        x`<foo bar="baz" bop="zap"/>`,
         h('foo', { bar: 'baz', bop: 'zap' })
     )
 })
@@ -61,6 +61,7 @@ test('with props and mixed multiple children', t => {
     )
 })
 
+
 test('deep complicated but static tree', t =>
     t.deepEqual(
         x`<div>
@@ -87,7 +88,8 @@ test('deep complicated but static tree', t =>
             ]),
             "Why then, oh why can't I",
         ])
-    ))
+    )
+)
 test('one variable prop', t =>
     t.deepEqual(x`<foo bar=${42} />`, h('foo', { bar: 42 })))
 
@@ -136,8 +138,7 @@ test('mixed static/dynamic, text, multi depth with props', t =>
         Some where
         <foo bar="baz">
             <bar baz="bop" />
-            over the rainbow
-            ${x`
+            over the rainbow ${x`
             <baz bop="bat">
                 blue birds fly
             </baz>
@@ -146,12 +147,13 @@ test('mixed static/dynamic, text, multi depth with props', t =>
             <zip />
         </foo>
         ${x`Why then, oh why can't I`}
-    </div>`,
+    </div>
+    `,
         h('div', {}, [
             'Some where',
             h('foo', { bar: 'baz' }, [
                 h('bar', { baz: 'bop' }),
-                'over the rainbow',
+                'over the rainbow ',
                 h('baz', { bop: 'bat' }, ['blue birds fly']),
                 'birds fly over the rainbow',
                 h('zip', {}),
@@ -235,6 +237,7 @@ test('component with just children - close with compoenent', t => {
     t.deepEqual(expected, result)
 })
 
+
 test('deep components', t => {
     const component = (props, children) => x`
         <component ownprop="yes" extprop=${props.foo}>
@@ -289,3 +292,34 @@ test('spread without ellipsis', t =>
             bat: 'zzz',
         })
     ))
+
+
+test('whitespace to placeholders preserved', t => { 
+    const name="Georgia"
+    t.deepEqual(
+        x`<foo>Hello ${name} my dear!</foo>`,
+        h('foo', {}, [
+            'Hello ',
+            'Georgia',
+            ' my dear!'
+        ])
+    )
+})
+
+test('whitespace between placeholders preserved', t => { 
+    const foo="foo"
+    const bar="bar"
+    t.deepEqual(
+        x`
+            <q>
+                aaa ${foo} ${bar} bbb
+            </q>`,
+        h('q', {}, [
+            'aaa ',
+            'foo',
+            ' ',
+            'bar',
+            ' bbb',
+        ])
+    )
+})
