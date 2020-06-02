@@ -1,3 +1,4 @@
+
 const NEXT = 0
 const TEXT = 1
 const TAG = 2
@@ -11,9 +12,8 @@ const PROPVALSTR = 9
 
 const ws = c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
-const parser = (h) => {
- 
-    const parse = (strs, vals, jstart, istart) => {
+const parser = h => {
+        const parse = (strs, vals, jstart, istart) => {
         let ch,
             buffer = '',
             tagname,
@@ -24,41 +24,57 @@ const parser = (h) => {
             j,
             i
 
-        const recurse = () => {
-            let r = parse(strs, vals, j, i + 1)
-            list.push(h(tagname, props, r[0]))
-            j = r[1]
-            i = r[2]
+        const makenode = children => {
+            list.push(h(tagname, props, children))
             mode = NEXT
         }
 
-        const gotTagName = () => {
-            tagname = buffer
-            props = [{}]
+        const gotText = trim => {
+            if (trim) buffer = buffer.trimEnd()
+            if (!buffer) return
+            list.push(buffer)
+            buffer = ''
+        }
+        const recurse = () => {
+            let r = parse(strs, vals, j, i + 1)
+            makenode(r[0])
+            j = r[1]
+            i = r[2]
         }
 
-        const gotText = () => {
-            list.push(buffer.trim())
+        const gotTagName = (m=mode) => {
+            tagname = buffer
+            props = [{}]
+            mode = m
+        }
+
+        const gotContent = () => {
+            if(vals[j]) list.push(vals[j])
+        }
+
+        const defaultProp = (m = mode) => {
+            props[0][buffer] = true
+            mode = m
+        }
+
+        const gotProp = v => {
+            props[0][propname] = v
+            mode = PROPS
         }
 
         for (j = jstart; j < strs.length; j++) {
-            if (mode == PROPVAL) {
-                props[0][propname] = vals[j - 1]
-                mode = PROPS
-            }
             for (i = istart; i < strs[j].length; i++) {
                 ch = strs[j][i]
                 if (mode == NEXT) {
                     if (ch == '<') {
                         mode = TAG
-                        tagname = ''
                     } else if (!ws(ch)) {
-                        buffer = ch
                         mode = TEXT
+                        buffer = ch
                     }
                 } else if (mode == TEXT) {
                     if (ch == '<') {
-                        gotText()
+                        gotText(true)
                         mode = TAG
                     } else {
                         buffer += ch
@@ -76,11 +92,9 @@ const parser = (h) => {
                     }
                 } else if (mode == TAGNAME) {
                     if (ws(ch)) {
-                        gotTagName()
-                        mode = PROPS
+                        gotTagName(PROPS)
                     } else if (ch == '/') {
-                        gotTagName()
-                        mode = SELFCLOSING
+                        gotTagName(SELFCLOSING)
                     } else if (ch == '>') {
                         gotTagName()
                         recurse()
@@ -89,8 +103,7 @@ const parser = (h) => {
                     }
                 } else if (mode == SELFCLOSING) {
                     if (ch == '>') {
-                        list.push(h(tagname, props, []))
-                        mode = NEXT
+                        makenode([])
                     }
                 } else if (mode == PROPS) {
                     if (ch == '.') {
@@ -106,20 +119,26 @@ const parser = (h) => {
                     if (ch == '=') {
                         propname = buffer
                         mode = PROPVAL
+                    } else if (ch == '>') {
+                        defaultProp()
+                        recurse()
+                    } else if (ch == '/') {
+                        defaultProp(SELFCLOSING)
+                    } else if (ws(ch)) {
+                        defaultProp(PROPS)
                     } else {
                         buffer += ch
                     }
                 } else if (mode == PROPVAL) {
                     if (ch == '"') {
                         mode = PROPVALSTR
-                        buffer = ''
+                        buffer = ['']
                     }
                 } else if (mode == PROPVALSTR) {
                     if (ch == '"') {
-                        props[0][propname] = buffer
-                        mode = PROPS
+                        gotProp(buffer)
                     } else {
-                        buffer += ch
+                        buffer[buffer.length - 1] += ch
                     }
                 }
             }
@@ -129,31 +148,24 @@ const parser = (h) => {
                 props = [{}]
                 mode = PROPS
             } else if (mode == TEXT) {
-                gotText()
-                mode = NEXT
+                gotText(!vals[j])
+                gotContent()
             } else if (mode == PROPS) {
                 props = [ ...props, vals[j] ]
+            } else if (mode == PROPVAL) {
+                gotProp(vals[j])
             } else if (mode == PROPVALSTR) {
-                props[0][propname] = vals[j]
-                mode = PROPS
-                istart = 1
+                buffer.push(vals[j]) 
+            } else if (mode == NEXT) {
+                gotContent()
             }
-            if (j < strs.length - 1 && mode == NEXT) {
-                list = [...list, vals[j]]
-            }
-        }
-        if (mode == TEXT) {
-            gotText()
         }
 
-        list = list.length == 1 ? list[0] : list
-        return [list, j, i]
+        return [list.length == 1 ? list[0] : list, j, i]
     }
 
     return (strs, ...vals) => parse(strs, vals, 0, 0)[0]
-
 }
-
 
 module.exports = ({types: t}) => {
 
@@ -177,8 +189,8 @@ module.exports = ({types: t}) => {
 			}
 			values.slice(1).forEach(value => {
 				node = t.binaryExpression('+', node, value);
-			});
-
+            });
+            
 			return t.objectProperty(propertyName(key), node);
         });
         

@@ -278,11 +278,6 @@ test('deep components', t => {
     t.deepEqual(result, expect)
 })
 
-test('it should also work to have dynamic prop in quotes', t =>
-    t.deepEqual(
-        x`<foo bar="${42}" baz="42" bat=${false} />`,
-        h('foo', { bar: 42, baz: '42', bat: false })
-    ))
 
 test('spread without ellipsis', t =>
     t.deepEqual(
@@ -321,5 +316,48 @@ test('whitespace between placeholders preserved', t => {
             'bar',
             ' bbb',
         ])
+    )
+})
+
+test('value-less props default to true - last ', t => t.deepEqual(
+    x`<button disabled>foo</button>`,
+    h('button', {disabled: true}, ['foo'])
+))
+
+test('value-less props default to true - mixed ', t => t.deepEqual(
+    x`<button disabled foo="bar">foo</button>`,
+    h('button', {disabled: true, foo: 'bar'}, ['foo'])
+))
+
+test('value-less props default to true - multiple ', t => t.deepEqual(
+    x`<button disabled foo="bar" hidden>foo</button>`,
+    h('button', {disabled: true, foo: 'bar', hidden: true}, ['foo'])
+))
+test('value-less props default to true - selfclosing', t => t.deepEqual(
+    x`<button hidden disabled/>`,
+    h('button', {hidden: true, disabled: true}, [])
+))
+
+test('dynamic propval in quotes should work', t => {
+    const baz = 'bop'
+    t.deepEqual(
+        x`<foo bar="${baz}"/>`,
+        h('foo', {bar: 'bop'})
+    )
+})
+
+test('dynamic propval in quotes should be cast to string', t => {
+    const baz = 42
+    t.deepEqual(
+        x`<foo bar="${baz}"/>`,
+        h('foo', {bar: '42'})
+    )
+})
+
+test('dynamic string inserted in prop-vals', t => {
+    const baz = 42
+    t.deepEqual(
+        x`<foo bar="a${baz}z"/>`,
+        h('foo', {bar: 'a42z'})
     )
 })

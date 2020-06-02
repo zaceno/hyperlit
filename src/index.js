@@ -24,7 +24,10 @@ const parse = (strs, vals, jstart, istart) => {
         j,
         i
 
-    const makenode = children => list.push(tagname.call ? tagname(props, children) : h(tagname, props, children))
+    const makenode = children => {
+        list.push(tagname.call ? tagname(props, children) : h(tagname, props, children))
+        mode = NEXT
+    }
 
     const gotText = trim => {
         if (trim) buffer = buffer.trimEnd()
@@ -37,29 +40,34 @@ const parse = (strs, vals, jstart, istart) => {
         makenode(r[0])
         j = r[1]
         i = r[2]
-        mode = NEXT
     }
 
-    const gotTagName = () => {
+    const gotTagName = (m=mode) => {
         tagname = buffer
         props = {}
+        mode = m
     }
 
     const gotContent = () => {
         if(vals[j]) list = list.concat(vals[j])
     }
 
+    const defaultProp = (m = mode) => {
+        props[buffer] = true
+        mode = m
+    }
+
+    const gotProp = v => {
+        props[propname] = v
+        mode = PROPS
+    }
+
     for (j = jstart; j < strs.length; j++) {
-        if (mode == PROPVAL) {
-            props[propname] = vals[j - 1]
-            mode = PROPS
-        }
         for (i = istart; i < strs[j].length; i++) {
             ch = strs[j][i]
             if (mode == NEXT) {
                 if (ch == '<') {
                     mode = TAG
-                    tagname = ''
                 } else if (!ws(ch)) {
                     mode = TEXT
                     buffer = ch
@@ -84,11 +92,9 @@ const parse = (strs, vals, jstart, istart) => {
                 }
             } else if (mode == TAGNAME) {
                 if (ws(ch)) {
-                    gotTagName()
-                    mode = PROPS
+                    gotTagName(PROPS)
                 } else if (ch == '/') {
-                    gotTagName()
-                    mode = SELFCLOSING
+                    gotTagName(SELFCLOSING)
                 } else if (ch == '>') {
                     gotTagName()
                     recurse()
@@ -98,7 +104,6 @@ const parse = (strs, vals, jstart, istart) => {
             } else if (mode == SELFCLOSING) {
                 if (ch == '>') {
                     makenode([])
-                    mode = NEXT
                 }
             } else if (mode == PROPS) {
                 if (ch == '.') {
@@ -114,6 +119,13 @@ const parse = (strs, vals, jstart, istart) => {
                 if (ch == '=') {
                     propname = buffer
                     mode = PROPVAL
+                } else if (ch == '>') {
+                    defaultProp()
+                    recurse()
+                } else if (ch == '/') {
+                    defaultProp(SELFCLOSING)
+                }else if (ws(ch)) {
+                    defaultProp(PROPS)
                 } else {
                     buffer += ch
                 }
@@ -124,8 +136,7 @@ const parse = (strs, vals, jstart, istart) => {
                 }
             } else if (mode == PROPVALSTR) {
                 if (ch == '"') {
-                    props[propname] = buffer
-                    mode = PROPS
+                    gotProp(buffer)
                 } else {
                     buffer += ch
                 }
@@ -141,10 +152,10 @@ const parse = (strs, vals, jstart, istart) => {
             gotContent()
         } else if (mode == PROPS) {
             props = { ...props, ...vals[j] }
+        } else if (mode == PROPVAL) {
+            gotProp(vals[j])
         } else if (mode == PROPVALSTR) {
-            props[propname] = vals[j]
-            mode = PROPS
-            istart = 1
+            buffer += vals[j]
         } else if (mode == NEXT) {
            gotContent()
         }
