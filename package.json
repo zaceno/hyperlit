@@ -9,7 +9,7 @@
         "dist"
     ],
     "scripts": {
-        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp --external hyperapp | terser -m -c --toplevel > dist/hyperlit.js",
+        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp --external hyperapp | terser -m -c  > dist/hyperlit.js",
         "build:esm": "rollup src/index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel > dist/index.js",
         "build": "npm run build:esm && npm run build:iife",
         "test": "ava"
