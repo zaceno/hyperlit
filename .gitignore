@@ -1,2 +1,4 @@
 node_modules/
 babel-plugin-hyperlit/node_modules/
+demo.js
+index.html

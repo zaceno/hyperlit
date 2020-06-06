@@ -18,8 +18,9 @@
     "license": "MIT",
     "devDependencies": {
         "ava": "^3.8.2",
+        "es-module-shims": "^0.4.6",
         "esm": "^3.2.25",
-        "hyperapp": "2.0.4",
+        "hyperapp": "^2.0.4",
         "rollup": "^2.10.2",
         "terser": "^4.6.13"
     },
