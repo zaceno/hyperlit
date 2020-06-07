@@ -361,3 +361,8 @@ test('dynamic string inserted in prop-vals', t => {
         h('foo', {bar: 'a42z'})
     )
 })
+
+test('falsy dynamic content is cast to string', t => t.deepEqual(
+    x`<foo>${0}</foo>`,
+    h('foo', {}, ['0'])
+))

@@ -56,8 +56,8 @@ const statClose = staticStep(() => {
 const dynStrVal = dynamicStep(val => {
     props[propname] += val
 })
-const dynAddContent = dynamicStep((content = []) => {
-    list.push(content)
+const dynAddContent = dynamicStep((content) => {
+    list.push(typeof content == 'number' ? ('' + content) : content)
 })
 const dynSetComponent = dynamicStep(fn => {
     tag = fn
