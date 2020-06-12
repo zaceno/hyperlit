@@ -86,13 +86,16 @@ const parse = strs => {
     let ch,
         buffer = '',
         mode = NEXT
+
     for (let j = 0; j < strs.length; j++) {
         for (let i = 0; i < strs[j].length; i++) {
             ch = strs[j][i]
             if (mode == NEXT) {
                 if (ch == '<') {
                     mode = TAG
-                } else if (!ws(ch)) {
+                } else if (ch == '\n') {
+                    buffer = ch
+                } else if (!ws(ch) || !ws(buffer)) {
                     mode = TEXT
                     buffer = ch
                 }

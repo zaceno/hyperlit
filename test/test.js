@@ -366,3 +366,16 @@ test('falsy dynamic content is cast to string', t => t.deepEqual(
     x`<foo>${0}</foo>`,
     h('foo', {}, ['0'])
 ))
+
+test('whitespace between element and text preserved', t => {
+    t.deepEqual(
+        x`
+            <div>
+                <span>a</span> b
+            </div>`,
+        h('div', {}, [
+            h('span', {}, ['a']),
+            ' b'
+        ])
+    )
+})

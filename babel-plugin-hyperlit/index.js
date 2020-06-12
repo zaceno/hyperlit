@@ -68,7 +68,9 @@ const parser = h => {
                 if (mode == NEXT) {
                     if (ch == '<') {
                         mode = TAG
-                    } else if (!ws(ch)) {
+                    } else if (ch == '\n') {
+                         buffer = ch
+                    } else if (!ws(ch) || !ws(buffer)) {
                         mode = TEXT
                         buffer = ch
                     }
