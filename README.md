@@ -10,7 +10,7 @@ Here's Hyperapp's "Quickstart" example using hyperlit:
     <head>
         <script type="module">
             import { app } from 'https://unpkg.com/hyperapp'
-            import html from 'https://unpkg.com/hyperlit?module'
+            import html from 'https://unpkg.com/hyperlit'
 
             app({
                 init: 0,
@@ -55,7 +55,7 @@ import html from 'hyperlit'
 If you're not bundling your page, and you are importing Hyperapp from `https://unpkg.com/hyperapp`, then use this import instead:
 
 ```js
-import html from 'https://unpkg.com/hyperlit?module'
+import html from 'https://unpkg.com/hyperlit'
 ```
 
 ### Old-school
