@@ -1,6 +1,6 @@
 {
     "name": "hyperlit",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "JSX-like ttl for hyperapp",
     "main": "src/index.js",
     "module": "src/index.js",
