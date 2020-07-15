@@ -2,12 +2,13 @@
     "name": "hyperlit",
     "version": "0.2.1",
     "description": "JSX-like ttl for hyperapp",
-    "main": "dist/index.js",
-    "module": "dist/index.js",
+    "main": "src/index.js",
+    "module": "src/index.js",
     "files": [
         "src",
         "dist"
     ],
+    "unpkg": "dist/index.js",
     "scripts": {
         "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp --external hyperapp | terser -m -c  > dist/hyperlit.js",
         "build:esm": "rollup src/index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel > dist/index.js",
