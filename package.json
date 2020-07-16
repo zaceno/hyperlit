@@ -2,36 +2,24 @@
     "name": "hyperlit",
     "version": "0.2.2",
     "description": "JSX-like ttl for hyperapp",
-    "main": "src/index.js",
-    "module": "src/index.js",
-    "files": [
-        "src",
-        "dist"
-    ],
-    "unpkg": "dist/index.js",
+    "main": "index.js",
+    "module": "index.js",
+    "type": "module",
+    "unpkg": "dist.js",
     "scripts": {
-        "build:iife": "rollup src/index.js --no-strict -f iife -n html -g hyperapp:hyperapp --external hyperapp | terser -m -c  > dist/hyperlit.js",
-        "build:esm": "rollup src/index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel > dist/index.js",
-        "build": "npm run build:esm && npm run build:iife",
+        "build": "rollup index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel | sed \"s/hyperapp/http:\\/\\/unpkg.com\\/hyperapp/g\" > dist.js",
         "test": "ava"
     },
     "author": "Zacharias Enochsson",
     "license": "MIT",
     "devDependencies": {
         "ava": "^3.8.2",
-        "es-module-shims": "^0.4.6",
-        "esm": "^3.2.25",
-        "hyperapp": "2.0.4",
+        "hyperapp": "^2.0.5",
         "rollup": "^2.10.2",
         "terser": "^4.6.13"
     },
     "peerDependencies": {
-        "hyperapp": "^2.0.4"
-    },
-    "ava": {
-        "require": [
-            "esm"
-        ]
+        "hyperapp": "^2.0.5"
     },
     "bugs": {
         "url": "https://github.com/zaceno/hyperlit/issues"

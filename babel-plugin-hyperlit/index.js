@@ -1,4 +1,22 @@
 
+class StringCombiner {
+    constructor () {
+        this.current = ''
+        this.chunks = []
+    }
+    addChar (ch) {
+        this.current += ch
+    }
+    addNode (n) {
+        if (this.current.length) this.chunks.push(this.current)
+        this.chunks.push(n)
+        this.current = ''
+    }
+    getChunks () {
+        return this.chunks.concat(this.current.length ? this.current : [])
+    }
+}
+
 const NEXT = 0
 const TEXT = 1
 const TAG = 2
@@ -13,43 +31,39 @@ const PROPVALSTR = 9
 const ws = c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 const parser = h => {
-        const parse = (strs, vals, jstart, istart) => {
-        let ch,
-            buffer = '',
-            tagname,
+    const parse = (strs, vals) => {
+        let tagname,
             propname,
             props,
+            parent,
             list = [],
-            mode = NEXT,
-            j,
-            i
+            ch,
+            buffer = '',
+            mode = NEXT
 
-        const makenode = children => {
-            list.push(h(tagname, props, children))
+        const listpush = (x) => list.push(x)
+
+        const pushnode = (children) => {
+            listpush(h(tagname, props, children))
             mode = NEXT
         }
 
-        const gotText = trim => {
+        const gotText = (trim) => {
             if (trim) buffer = buffer.trimEnd()
-            if (!buffer) return
-            list.push(buffer)
+            listpush(buffer)
             buffer = ''
         }
-        const recurse = () => {
-            let r = parse(strs, vals, j, i + 1)
-            makenode(r[0])
-            j = r[1]
-            i = r[2]
+
+        const open = () => {
+            parent = [list, tagname, props, parent]
+            list = []
+            mode = NEXT
         }
 
-        const gotTagName = (m=mode) => {
+        const gotTagName = (m = mode) => {
             tagname = buffer
             props = [{}]
             mode = m
-        }
-
-        const gotContent = () => {
-            if(vals[j]) list.push(vals[j])
         }
 
         const defaultProp = (m = mode) => {
@@ -57,19 +71,25 @@ const parser = h => {
             mode = m
         }
 
-        const gotProp = v => {
+        const gotProp = (v) => {
             props[0][propname] = v
             mode = PROPS
         }
 
-        for (j = jstart; j < strs.length; j++) {
-            for (i = istart; i < strs[j].length; i++) {
+        const close = () => {
+            let children = list
+            ;[list, tagname, props, parent] = parent
+            pushnode(children)
+        }
+
+        for (let j = 0; j < strs.length; j++) {
+            for (let i = 0; i < strs[j].length; i++) {
                 ch = strs[j][i]
                 if (mode == NEXT) {
                     if (ch == '<') {
                         mode = TAG
                     } else if (ch == '\n') {
-                         buffer = ch
+                        buffer = ch
                     } else if (!ws(ch) || !ws(buffer)) {
                         mode = TEXT
                         buffer = ch
@@ -89,9 +109,7 @@ const parser = h => {
                         buffer = ch
                     }
                 } else if (mode == CLOSINGTAG) {
-                    if (ch == '>') {
-                        return [list, j, i]
-                    }
+                    if (ch == '>') close()
                 } else if (mode == TAGNAME) {
                     if (ws(ch)) {
                         gotTagName(PROPS)
@@ -99,20 +117,20 @@ const parser = h => {
                         gotTagName(SELFCLOSING)
                     } else if (ch == '>') {
                         gotTagName()
-                        recurse()
+                        open()
                     } else {
                         buffer += ch
                     }
                 } else if (mode == SELFCLOSING) {
                     if (ch == '>') {
-                        makenode([])
+                        pushnode([])
                     }
                 } else if (mode == PROPS) {
                     if (ch == '.') {
                     } else if (ch == '/') {
                         mode = SELFCLOSING
                     } else if (ch == '>') {
-                        recurse()
+                        open()
                     } else if (!ws(ch)) {
                         buffer = ch
                         mode = PROPNAME
@@ -123,7 +141,7 @@ const parser = h => {
                         mode = PROPVAL
                     } else if (ch == '>') {
                         defaultProp()
-                        recurse()
+                        open()
                     } else if (ch == '/') {
                         defaultProp(SELFCLOSING)
                     } else if (ws(ch)) {
@@ -134,39 +152,38 @@ const parser = h => {
                 } else if (mode == PROPVAL) {
                     if (ch == '"') {
                         mode = PROPVALSTR
-                        buffer = ['']
+                        buffer = new StringCombiner()
                     }
                 } else if (mode == PROPVALSTR) {
                     if (ch == '"') {
                         gotProp(buffer)
                     } else {
-                        buffer[buffer.length - 1] += ch
+                        buffer.addChar(ch)
                     }
                 }
             }
-            istart = 0
             if (mode == TAG) {
                 tagname = vals[j]
                 props = [{}]
                 mode = PROPS
             } else if (mode == TEXT) {
                 gotText(!vals[j])
-                gotContent()
+                listpush(vals[j])
             } else if (mode == PROPS) {
-                props = [ ...props, vals[j] ]
+                props = [...props, vals[j]]
             } else if (mode == PROPVAL) {
                 gotProp(vals[j])
             } else if (mode == PROPVALSTR) {
-                buffer.push(vals[j]) 
-            } else if (mode == NEXT) {
-                gotContent()
+                buffer.addNode(vals[j])
+            } else if (mode == NEXT && vals[j] != null) {
+                listpush(vals[j])
             }
         }
 
-        return [list.length == 1 ? list[0] : list, j, i]
+        return list.length > 1 ? list : list[0]
     }
 
-    return (strs, ...vals) => parse(strs, vals, 0, 0)[0]
+    return (strs, ...vals) => parse(strs, vals)
 }
 
 module.exports = ({types: t}) => {
@@ -182,7 +199,19 @@ module.exports = ({types: t}) => {
         if (t.isNode(obj)) return obj
 
 		let properties = Object.keys(obj).map(key => {
-            let values = obj[key].map ? obj[key] : [obj[key]]
+            let value = obj[key]
+            if (value instanceof StringCombiner) {
+                let parts = value.getChunks()
+                value = t.stringLiteral('')
+                parts.forEach(part => {
+                    value = t.binaryExpression('+', value, t.isNode(part) ? part : t.valueToNode(part))
+                })
+            }
+            else if(!t.isNode(value)) {
+                value = t.valueToNode(value)
+            }
+
+/*            let values = obj[key].map ? obj[key] : [obj[key]]
             values = values.map(valueOrNode =>  t.isNode(valueOrNode) ? valueOrNode : t.valueToNode(valueOrNode))
 
 			let node = values[0];
@@ -192,10 +221,10 @@ module.exports = ({types: t}) => {
 			values.slice(1).forEach(value => {
 				node = t.binaryExpression('+', node, value);
             });
+        */
             
-			return t.objectProperty(propertyName(key), node);
+			return t.objectProperty(propertyName(key), value);
         });
-        
         return t.objectExpression(properties)
     }
 
@@ -208,10 +237,11 @@ module.exports = ({types: t}) => {
     const myParse = fname => parser((tag, props, children) => {
         let stag = t.isNode(tag)  ? tag : t.stringLiteral(tag)
         let sprops = mergedObjects(props)
-        let schildren = t.arrayExpression((children || []).map(v => t.isNode(v) ? v : t.valueToNode(v)))
+        let schildren = arrayToNode(children || [])
         return t.callExpression(t.identifier(fname), [stag, sprops, schildren])
     })
 
+    const arrayToNode = arr =>  t.arrayExpression(arr.map(val => t.isNode(val) ? val : t.valueToNode(val)))
 
     return {
         name: 'hyperlit',
@@ -231,11 +261,14 @@ module.exports = ({types: t}) => {
                 }
             },
             TaggedTemplateExpression(path, state) {
-                let fname = state.get('hyperlitName')
+                let fname = state.get('hyperlitName') || 'html'
                 if (path.node.tag.name === fname) {
                     const strs = path.node.quasi.quasis.map(e => e.value.raw);
                     const expr = path.node.quasi.expressions;
-                    path.replaceWith(myParse(fname)(strs, ...expr))				
+                    const result = myParse(fname)(strs, ...expr)
+                    if (Array.isArray(result)) path.replaceWith(arrayToNode(result))
+                    else if (typeof result === 'string') path.replaceWith(t.stringLiteral(result))
+                    else path.replaceWith(result)				
 
                 }
 			}

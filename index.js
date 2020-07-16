@@ -1,4 +1,4 @@
-import { h } from 'hyperapp'
+import { h, text } from 'hyperapp'
 
 const NEXT = 0
 const TEXT = 1
@@ -11,20 +11,28 @@ const PROPNAME = 7
 const PROPVAL = 8
 const PROPVALSTR = 9
 
-const ws = c => c == ' ' || c == '\t' || c == '\n' || c == '\r'
+const ws = (c) => c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
 const parse = (strs, vals) => {
-    let tagname, propname, props, parent, list = [], ch, buffer = '', mode = NEXT
+    let tagname,
+        propname,
+        props,
+        parent,
+        list = [],
+        ch,
+        buffer = '',
+        mode = NEXT
 
-    const makenode = children => {
-        list.push(tagname.call ? tagname(props, children) : h(tagname, props, children))
+    const listpush = (x) => x && list.push(typeof x === 'string' ? text(x) : x)
+
+    const pushnode = (ch, children = ch.flat()) => {
+        listpush(tagname.call ? tagname(props, children) : h(tagname, props, children))
         mode = NEXT
     }
 
-    const gotText = trim => {
+    const gotText = (trim) => {
         if (trim) buffer = buffer.trimEnd()
-        if (!buffer ) return
-        list.push(buffer)
+        listpush(buffer)
         buffer = ''
     }
 
@@ -34,22 +42,20 @@ const parse = (strs, vals) => {
         mode = NEXT
     }
 
-    const gotTagName = (m=mode) => {
+    const gotTagName = (m = mode) => {
         tagname = buffer
         props = {}
         mode = m
     }
 
-    const gotContent = (v) => {
-        list.push(v === 0 ? '0' : v)
-    }
+    const gotContent = (v) => listpush(v === 0 ? '0' : v)
 
     const defaultProp = (m = mode) => {
         props[buffer] = true
         mode = m
     }
 
-    const gotProp = v => {
+    const gotProp = (v) => {
         props[propname] = v
         mode = PROPS
     }
@@ -57,7 +63,7 @@ const parse = (strs, vals) => {
     const close = () => {
         let children = list
         ;[list, tagname, props, parent] = parent
-        makenode(children)
+        pushnode(children)
     }
 
     for (let j = 0; j < strs.length; j++) {
@@ -101,7 +107,7 @@ const parse = (strs, vals) => {
                 }
             } else if (mode == SELFCLOSING) {
                 if (ch == '>') {
-                    makenode([])
+                    pushnode([])
                 }
             } else if (mode == PROPS) {
                 if (ch == '.') {
@@ -122,7 +128,7 @@ const parse = (strs, vals) => {
                     open()
                 } else if (ch == '/') {
                     defaultProp(SELFCLOSING)
-                }else if (ws(ch)) {
+                } else if (ws(ch)) {
                     defaultProp(PROPS)
                 } else {
                     buffer += ch
@@ -146,7 +152,7 @@ const parse = (strs, vals) => {
             mode = PROPS
         } else if (mode == TEXT) {
             gotText(!vals[j])
-            gotContent(vals[j])
+            vals[j] && gotContent(vals[j])
         } else if (mode == PROPS) {
             props = { ...props, ...vals[j] }
         } else if (mode == PROPVAL) {
@@ -158,7 +164,7 @@ const parse = (strs, vals) => {
         }
     }
 
-    return list.length == 1 ? list[0] : list
+    return list.length > 1 ? list : list[0]
 }
 
 export default (strs, ...vals) => parse(strs, vals)

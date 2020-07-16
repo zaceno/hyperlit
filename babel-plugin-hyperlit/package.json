@@ -4,8 +4,11 @@
   "description": "babel transform for hyperlit to hyperapp",
   "main": "index.js",
   "peerDependencies": {
-    "hyperapp": "^2.0.4"
+    "hyperapp": "^2.0.5"
   },
-  "author": "",
-  "license": "MIT"
+  "author": "Zacharias Enochsson",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.10.5"
+  }
 }
