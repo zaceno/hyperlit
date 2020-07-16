@@ -1,6 +1,6 @@
 # hyperlit
 
-`hyperlit` lets you declare your [hyperapp](https://hyperapp.dev) views in a html-like fashion, similar to JSX. Unlike JSX you don't need a build-step and babel config to do it -- it happens run-time in your browser. It's quite small – ca 0.5kb.
+`hyperlit` lets you declare your [hyperapp](https://hyperapp.dev) views in a html-like fashion, similar to JSX. Unlike JSX you don't need a build-step and babel config to do it -- it happens run-time in your browser. It's quite small – ca 0.6kb.
 
 Here's Hyperapp's "Quickstart" example using hyperlit:
 
@@ -50,25 +50,14 @@ Once installed, you can import `hyperlit` wherever you declare views:
 import html from 'hyperlit'
 ```
 
-### As ES-module
+### Browser modules
 
-If you're not bundling your page, and you are importing Hyperapp from `https://unpkg.com/hyperapp`, then use this import instead:
+If you prefer not to use npm, you can use client side imports directly like this:
 
 ```js
 import html from 'https://unpkg.com/hyperlit'
 ```
 
-### Old-school
-
-Just drop this in after your hyperapp script-tag:
-
-```html
-<script src="https://unpkg.com/hyperapp/dist/hyperapp.js"></script>
-<script src="https://unpkg.com/hyperlit/dist/hyperlit.js"></script>
-...
-```
-
-That will export a global `html` function which you use to declare the views.
 
 ## Usage
 
@@ -89,11 +78,11 @@ instead of:
 
 ```js
 h('div', { class: 'big' }, [
-    h('h1', {}, 'title'),
+    h('h1', {}, text('Title')),
     h('p', { class: 'aligned' }, [
-        'Content 1',
+        text('Content 1'),
         h('br', {}),
-        'Content 2'
+        text('Content 2')
     ]),
 ])
 ```
@@ -126,7 +115,7 @@ const name = 'Joe'
 const greeting = html`<span>Hello ${name}!</span>`
 ```
 
-results in `h('span', {}, ['hello', 'joe', '!'])`.
+results in `h('span', {}, [text('Hello'), text('Joe'), text('!')])`.
 
 Content can be a string or a vnode. Content can also be an array:
 
@@ -144,10 +133,10 @@ results in `list` being equivalent to:
 
 ```js
 h('div', {}, [
-    h('p', {}, 'Members:'),
-    h('p', {}, 'Kim'),
-    h('p', {}, 'Robin'),
-    h('p', {}, 'Sam'),
+    h('p', {}, text('Members:')),
+    h('p', {}, text('Kim')),
+    h('p', {}, text('Robin')),
+    h('p', {}, text('Sam')),
 ])
 ```
 
@@ -217,6 +206,6 @@ If you use [VS Code](https://code.visualstudio.com), install the [lit-html](http
 
 ## Credits
 
-This project was inspired by [Jason Miller's](https://github.com/developit) [htm](https://github.com/developit/htm). I found there were some quirks using `htm` with Hyperapp, and Hyperapp was planning a move away from compatibility with `htm` anyway, so I wanted a similar solution that would work better for hyperapp going forward. 
+This project was inspired by [Jason Miller's](https://github.com/developit) [htm](https://github.com/developit/htm). I made it to have a similar solution that would work well with Hyperapp.
 
 Thanks to [Jorge Bucaran](https://github.com/jorgebucaran) for making [Hyperapp](https://github.com/jorgebucaran/hyperapp) and for coming up with the name of this project!
