@@ -21,7 +21,14 @@ const h = (type, props, children) =>
   )
 
 const html = (tag, props={}, children=[]) => {
-    children = children.flat().map(ch => ch===0 ? text('0') : typeof ch === 'string' ? text(ch) : ch).filter(x => x && x.type)
+    children = children
+        .flat()
+        .filter(x => (x || x === 0))
+        .map(ch =>
+            typeof ch == 'string' ? text(ch)
+            : typeof ch == 'number' ? text(''+ch)
+            : ch
+        )
     if (typeof tag === 'function') return tag(props, children)
     return h(tag, props, children)
 }
@@ -36,8 +43,6 @@ const test = (message, input, expected) => compare(
     expected,
     message
 )
-
-
 test(
     'simple tag - space before close', 
     `html\`<foo />\``,
@@ -422,3 +427,10 @@ test(
     `,
     h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
 )
+
+test(
+    'numeric values in content cast to strings',
+    `html\`<div>My age: \${42}</div>\``,
+    h('div', {}, [text('My age: '), text('42')])
+)
+

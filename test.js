@@ -270,3 +270,10 @@ test('whitespace between element and text preserved', (t) => {
         h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
     )
 })
+
+test('numeric values in content cast to strings', (t) => {
+    t.deepEqual(
+        x`<div>My age: ${42}</div>`,
+        h('div', {}, [text('My age: '), text('42')])
+    )
+})

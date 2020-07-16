@@ -23,7 +23,7 @@ const parse = (strs, vals) => {
         buffer = '',
         mode = NEXT
 
-    const listpush = (x) => x && list.push(typeof x === 'string' ? text(x) : x)
+    const listpush = (x) => (x || x === 0)  && list.push(typeof x == 'string' ? text(x) : typeof x == 'number' ? text(''+x) : x)
 
     const pushnode = (ch, children = ch.flat()) => {
         listpush(tagname.call ? tagname(props, children) : h(tagname, props, children))
@@ -47,8 +47,6 @@ const parse = (strs, vals) => {
         props = {}
         mode = m
     }
-
-    const gotContent = (v) => listpush(v === 0 ? '0' : v)
 
     const defaultProp = (m = mode) => {
         props[buffer] = true
@@ -152,7 +150,7 @@ const parse = (strs, vals) => {
             mode = PROPS
         } else if (mode == TEXT) {
             gotText(!vals[j])
-            vals[j] && gotContent(vals[j])
+            listpush(vals[j])
         } else if (mode == PROPS) {
             props = { ...props, ...vals[j] }
         } else if (mode == PROPVAL) {
@@ -160,7 +158,7 @@ const parse = (strs, vals) => {
         } else if (mode == PROPVALSTR) {
             buffer += vals[j]
         } else if (mode == NEXT && vals[j] != null) {
-            gotContent(vals[j])
+            listpush(vals[j])
         }
     }
 
