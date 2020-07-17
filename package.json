@@ -7,7 +7,7 @@
     "type": "module",
     "unpkg": "dist.js",
     "scripts": {
-        "build": "rollup index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel | sed \"s/hyperapp/http:\\/\\/unpkg.com\\/hyperapp/g\" > dist.js",
+        "build": "rollup index.js --no-strict -f es --external hyperapp | terser -m -c --toplevel | sed \"s/hyperapp/https:\\/\\/unpkg.com\\/hyperapp/g\" > dist.js",
         "test": "ava"
     },
     "author": "Zacharias Enochsson",
