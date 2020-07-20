@@ -277,3 +277,17 @@ test('numeric values in content cast to strings', (t) => {
         h('div', {}, [text('My age: '), text('42')])
     )
 })
+
+test('compose arrays of arrays', t => {
+    let aaa = x`<aaa/><bbb/>`
+    let ccc = x`<ccc/><ddd/>`
+    t.deepEqual(
+        x`${aaa}${ccc}`,
+        [
+            h('aaa', {}),
+            h('bbb', {}),
+            h('ccc', {}),
+            h('ddd', {}),
+        ]
+    )
+})

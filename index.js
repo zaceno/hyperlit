@@ -161,7 +161,7 @@ const parse = (strs, vals) => {
             listpush(vals[j])
         }
     }
-
+    list = list.flat()
     return list.length > 1 ? list : list[0]
 }
 

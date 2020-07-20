@@ -43,6 +43,8 @@ const test = (message, input, expected) => compare(
     expected,
     message
 )
+
+
 test(
     'simple tag - space before close', 
     `html\`<foo />\``,
@@ -434,3 +436,17 @@ test(
     h('div', {}, [text('My age: '), text('42')])
 )
 
+test(
+    'compose arrays of arrays',
+    `
+    let aaa = html\`<aaa/><bbb/>\`
+    let ccc = html\`<ccc/><ddd/>\`
+    html\`\${aaa}\${ccc}\`
+    `,
+    [
+        h('aaa', {}),
+        h('bbb', {}),
+        h('ccc', {}),
+        h('ddd', {}),
+    ]
+)

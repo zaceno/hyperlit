@@ -210,18 +210,6 @@ module.exports = ({types: t}) => {
             else if(!t.isNode(value)) {
                 value = t.valueToNode(value)
             }
-
-/*            let values = obj[key].map ? obj[key] : [obj[key]]
-            values = values.map(valueOrNode =>  t.isNode(valueOrNode) ? valueOrNode : t.valueToNode(valueOrNode))
-
-			let node = values[0];
-			if (values.length > 1 && !t.isStringLiteral(node) && !t.isStringLiteral(values[1])) {
-				node = t.binaryExpression('+', t.stringLiteral(''), node);
-			}
-			values.slice(1).forEach(value => {
-				node = t.binaryExpression('+', node, value);
-            });
-        */
             
 			return t.objectProperty(propertyName(key), value);
         });
@@ -266,7 +254,16 @@ module.exports = ({types: t}) => {
                     const strs = path.node.quasi.quasis.map(e => e.value.raw);
                     const expr = path.node.quasi.expressions;
                     const result = myParse(fname)(strs, ...expr)
-                    if (Array.isArray(result)) path.replaceWith(arrayToNode(result))
+                    if (Array.isArray(result))
+                        path.replaceWith(
+                            t.callExpression(
+                                t.memberExpression(
+                                    arrayToNode(result),
+                                    t.identifier('flat')
+                                ),
+                                []
+                            )
+                        )
                     else if (typeof result === 'string') path.replaceWith(t.stringLiteral(result))
                     else path.replaceWith(result)				
 
