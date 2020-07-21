@@ -9,8 +9,10 @@ const createVNode = (type, props, children, node, key, tag) => ({
   key,
   tag,
 })
+
 const text = (value, node) =>
   createVNode(value, EMPTY_OBJ, EMPTY_ARR, node, null, TEXT_NODE)
+
 const h = (type, props, children) =>
   createVNode(
     type,
@@ -20,18 +22,16 @@ const h = (type, props, children) =>
     props.key
   )
 
-const html = (tag, props={}, children=[]) => {
-    children = children
-        .flat()
-        .filter(x => (x || x === 0))
-        .map(ch =>
-            typeof ch == 'string' ? text(ch)
-            : typeof ch == 'number' ? text(''+ch)
-            : ch
-        )
-    if (typeof tag === 'function') return tag(props, children)
-    return h(tag, props, children)
+function html(tag, props = {}, children = []) {
+    if (Array.isArray(tag))
+        return tag
+            .flat(2)
+            .filter((x) => x || x === 0)
+            .map((ch) => (typeof ch == 'string' ? text(ch) : typeof ch == 'number' ? text('' + ch) : ch))
+    if (typeof tag === 'function') return tag(props, html(children))
+    return h(tag, props, html(children))
 }
+
 const assert = require('assert').strict
 const compare = assert.deepStrictEqual
 const babel = require('@babel/core')
@@ -43,7 +43,6 @@ const test = (message, input, expected) => compare(
     expected,
     message
 )
-
 
 test(
     'simple tag - space before close', 
@@ -436,8 +435,11 @@ test(
     h('div', {}, [text('My age: '), text('42')])
 )
 
+
+
+
 test(
-    'compose arrays of arrays',
+    'compose arrays of arrays - 1',
     `
     let aaa = html\`<aaa/><bbb/>\`
     let ccc = html\`<ccc/><ddd/>\`
@@ -450,3 +452,36 @@ test(
         h('ddd', {}),
     ]
 )
+
+
+
+test(
+    'compose arrays of arrays - 2',
+    `
+    let aaa = html\`<aaa/><bbb/>\`
+    let ccc = html\`<ccc/><ddd/>\`
+    html\`<div>\${[aaa, ccc]}</div>\`
+    `,
+    h('div', {}, [
+        h('aaa', {}),
+        h('bbb', {}),
+        h('ccc', {}),
+        h('ddd', {}),
+    ])
+)
+
+test(
+    'compose arrays of arrays - 3',
+    `
+    let aaa = html\`<aaa/><bbb/>\`
+    let ccc = html\`<ccc/><ddd/>\`
+    html\`\${[aaa, ccc]}\`
+    `,
+    [
+        h('aaa', {}),
+        h('bbb', {}),
+        h('ccc', {}),
+        h('ddd', {}),
+    ]
+)
+

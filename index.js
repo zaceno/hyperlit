@@ -25,7 +25,7 @@ const parse = (strs, vals) => {
 
     const listpush = (x) => (x || x === 0)  && list.push(typeof x == 'string' ? text(x) : typeof x == 'number' ? text(''+x) : x)
 
-    const pushnode = (ch, children = ch.flat()) => {
+    const pushnode = (ch, children = ch.flat(2)) => {
         listpush(tagname.call ? tagname(props, children) : h(tagname, props, children))
         mode = NEXT
     }
@@ -161,7 +161,7 @@ const parse = (strs, vals) => {
             listpush(vals[j])
         }
     }
-    list = list.flat()
+    list = list.flat(2)
     return list.length > 1 ? list : list[0]
 }
 

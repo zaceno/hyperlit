@@ -254,16 +254,8 @@ module.exports = ({types: t}) => {
                     const strs = path.node.quasi.quasis.map(e => e.value.raw);
                     const expr = path.node.quasi.expressions;
                     const result = myParse(fname)(strs, ...expr)
-                    if (Array.isArray(result))
-                        path.replaceWith(
-                            t.callExpression(
-                                t.memberExpression(
-                                    arrayToNode(result),
-                                    t.identifier('flat')
-                                ),
-                                []
-                            )
-                        )
+                    if (t.isArrayExpression(result)) path.replaceWith(t.callExpression(t.identifier(fname), [result]))
+                    else if (Array.isArray(result)) path.replaceWith(t.callExpression(t.identifier(fname), [arrayToNode(result)]))
                     else if (typeof result === 'string') path.replaceWith(t.stringLiteral(result))
                     else path.replaceWith(result)				
 

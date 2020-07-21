@@ -278,7 +278,7 @@ test('numeric values in content cast to strings', (t) => {
     )
 })
 
-test('compose arrays of arrays', t => {
+test('compose arrays of arrays - 1', t => {
     let aaa = x`<aaa/><bbb/>`
     let ccc = x`<ccc/><ddd/>`
     t.deepEqual(
@@ -288,6 +288,34 @@ test('compose arrays of arrays', t => {
             h('bbb', {}),
             h('ccc', {}),
             h('ddd', {}),
+        ]
+    )
+})
+
+test('compose arrays of arrays - 2', t => {
+    let aaa = x`<aaa/><bbb/>`
+    let ccc = x`<ccc/><ddd/>`
+    t.deepEqual(
+        x`<div>${[aaa, ccc]}</div>`,
+        h('div', {}, [
+            h('aaa', {}),
+            h('bbb', {}),
+            h('ccc', {}),
+            h('ddd', {}), 
+        ])
+    )
+})
+
+test('compse arrays of arrays - 3', t => {
+    let aaa = x`<aaa/><bbb/>`
+    let ccc = x`<ccc/><ddd/>`
+    t.deepEqual(
+        x`${[aaa, ccc]}`,
+        [
+            h('aaa', {}),
+            h('bbb', {}),
+            h('ccc', {}),
+            h('ddd', {}), 
         ]
     )
 })
