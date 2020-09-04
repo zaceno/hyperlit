@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-hyperlit",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "babel transform for hyperlit to hyperapp",
   "main": "index.js",
   "peerDependencies": {
