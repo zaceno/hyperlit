@@ -230,6 +230,46 @@ test('whitespace between placeholders preserved', (t) => {
     )
 })
 
+
+test('preserve whitespace before element', t => t.deepEqual(
+    x`<foo>aaa <bar>bbb</bar>ccc</foo>`,
+    h('foo', {}, [
+        text('aaa '),
+        h('bar', {}, [
+            text('bbb')
+        ]),
+        text('ccc'),
+    ])
+))
+
+test('preserve whitespace after element', t => t.deepEqual(
+    x`<foo>aaa<bar>bbb</bar> ccc</foo>`,
+    h('foo', {}, [
+        text('aaa'),
+        h('bar', {}, [
+            text('bbb')
+        ]),
+        text(' ccc'),
+    ])
+))
+
+test('whitespace between element and text preserved', (t) => {
+    t.deepEqual(
+        x`
+            <div>
+                <span>a</span> b
+            </div>`,
+        h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
+    )
+})
+
+test('numeric values in content cast to strings', (t) => {
+    t.deepEqual(
+        x`<div>My age: ${42}</div>`,
+        h('div', {}, [text('My age: '), text('42')])
+    )
+})
+
 test('value-less props default to true - last ', (t) =>
     t.deepEqual(x`<button disabled>foo</button>`, h('button', { disabled: true }, [text('foo')])))
 
@@ -260,23 +300,6 @@ test('dynamic string inserted in prop-vals', (t) => {
 })
 
 test('falsy dynamic content is cast to string', (t) => t.deepEqual(x`<foo>${0}</foo>`, h('foo', {}, [text('0')])))
-
-test('whitespace between element and text preserved', (t) => {
-    t.deepEqual(
-        x`
-            <div>
-                <span>a</span> b
-            </div>`,
-        h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
-    )
-})
-
-test('numeric values in content cast to strings', (t) => {
-    t.deepEqual(
-        x`<div>My age: ${42}</div>`,
-        h('div', {}, [text('My age: '), text('42')])
-    )
-})
 
 test('compose arrays of arrays - 1', t => {
     let aaa = x`<aaa/><bbb/>`
@@ -319,3 +342,4 @@ test('compse arrays of arrays - 3', t => {
         ]
     )
 })
+

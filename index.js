@@ -21,7 +21,8 @@ const parse = (strs, vals) => {
         list = [],
         ch,
         buffer = '',
-        mode = NEXT
+        mode = NEXT,
+        newline = true
 
     const listpush = (x) => (x || x === 0)  && list.push(typeof x == 'string' ? text(x) : typeof x == 'number' ? text(''+x) : x)
 
@@ -32,7 +33,8 @@ const parse = (strs, vals) => {
 
     const gotText = (trim) => {
         if (trim) buffer = buffer.trimEnd()
-        listpush(buffer)
+        buffer && listpush(buffer)
+        newline = false
         buffer = ''
     }
 
@@ -44,6 +46,7 @@ const parse = (strs, vals) => {
 
     const gotTagName = (m = mode) => {
         tagname = buffer
+        buffer = ''
         props = {}
         mode = m
     }
@@ -51,11 +54,13 @@ const parse = (strs, vals) => {
     const defaultProp = (m = mode) => {
         props[buffer] = true
         mode = m
+        buffer = ''
     }
 
     const gotProp = (v) => {
         props[propname] = v
         mode = PROPS
+        buffer = ''
     }
 
     const close = () => {
@@ -70,24 +75,32 @@ const parse = (strs, vals) => {
             if (mode == NEXT) {
                 if (ch == '<') {
                     mode = TAG
-                } else if (ch == '\n') {
+                } else if (!ws(ch)) {
+                    mode = TEXT
                     buffer = ch
-                } else if (!ws(ch) || !ws(buffer)) {
+                } else if (ch =='\n') {
+                    newline = true
+                } else if (!newline) {
                     mode = TEXT
                     buffer = ch
                 }
             } else if (mode == TEXT) {
                 if (ch == '<') {
-                    gotText(true)
                     mode = TAG
+                } else if (ch == '\n') {
+                    gotText(false)
+                    newline = true
+                    mode = NEXT
                 } else {
                     buffer += ch
                 }
             } else if (mode == TAG) {
                 if (ch == '/') {
                     mode = CLOSINGTAG
+                    gotText(true)
                 } else {
                     mode = TAGNAME
+                    gotText(false)
                     buffer = ch
                 }
             } else if (mode == CLOSINGTAG) {

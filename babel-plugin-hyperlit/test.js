@@ -419,26 +419,6 @@ test(
 )
 
 test(
-    'whitespace between element and text preserved',
-    `
-    html\`
-            <div>
-                <span>a</span> b
-            </div>\`
-    `,
-    h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
-)
-
-test(
-    'numeric values in content cast to strings',
-    `html\`<div>My age: \${42}</div>\``,
-    h('div', {}, [text('My age: '), text('42')])
-)
-
-
-
-
-test(
     'compose arrays of arrays - 1',
     `
     let aaa = html\`<aaa/><bbb/>\`
@@ -485,3 +465,49 @@ test(
     ]
 )
 
+
+test(
+    'whitespace between element and text preserved',
+    `
+    html\`
+            <div>
+                <span>a</span> b
+            </div>\`
+    `,
+    h('div', {}, [h('span', {}, [text('a')]), text(' b')]),
+)
+
+test(
+    'numeric values in content cast to strings',
+    `html\`<div>My age: \${42}</div>\``,
+    h('div', {}, [text('My age: '), text('42')])
+)
+
+
+test(
+    'preserve whitespace before element',
+    `
+    html\`<foo>aaa <bar>bbb</bar>ccc</foo>\`
+    `,
+    h('foo', {}, [
+        text('aaa '),
+        h('bar', {}, [
+            text('bbb')
+        ]),
+        text('ccc')
+    ])
+)
+
+test(
+    'preserve whitespace after element',
+    `
+    html\`<foo>aaa<bar>bbb</bar> ccc</foo>\`
+    `,
+    h('foo', {}, [
+        text('aaa'),
+        h('bar', {}, [
+            text('bbb')
+        ]),
+        text(' ccc')
+    ])
+)
